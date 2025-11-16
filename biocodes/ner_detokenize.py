@@ -13,7 +13,14 @@
 # limitations under the License.
 
 import argparse
+import logging
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--token_test_path', type=str,  help='Path to token_test.txt from output folder. ex) output/token_test.txt')
@@ -99,8 +106,15 @@ def transform2CoNLLForm(golden_path, output_dir, bert_pred, debug):
                 ans['toks'].append(tmp[0])
                 ans['labels'].append(tmp[1])
                 buf.append(tmp[0])
+            except IndexError as e:
+                logger.warning(
+                    "Skipping malformed line %d: expected at least 2 columns, got %d - %s",
+                    lineIdx, len(tmp), str(e)
+                )
+                continue
             except Exception as e:
-                print("Exception at line no : %s"%lineIdx, e)
+                logger.error("Unexpected error at line %d: %s", lineIdx, str(e))
+                raise
 
         if len(buf) == 0: # If the file is ending with a space : remove the last CLS
             ans['toks'] = ans['toks'][:-1] 
@@ -150,8 +164,22 @@ def transform2CoNLLForm(golden_path, output_dir, bert_pred, debug):
             else:
                 try:
                     out_.write("%s %s-MISC %s-MISC\n"%(bpred_t, ans['labels'][idx+offset], bpred_l))
-                except:
-                    print("idx: ", idx, "offset: ", offset)
+                except IndexError as e:
+                    logger.error(
+                        "IndexError during label alignment at idx: %d, offset: %d - %s",
+                        idx, offset, str(e)
+                    )
+                    # Skip this token and continue processing
+                    continue
+                except (IOError, OSError) as e:
+                    logger.error("File write error: %s", str(e))
+                    raise
+                except Exception as e:
+                    logger.error(
+                        "Unexpected error at idx: %d, offset: %d - %s",
+                        idx, offset, str(e)
+                    )
+                    raise
 
 if __name__ == "__main__":
     bert_pred = detokenize(pred_token_test_path=args.token_test_path, pred_label_test_path=args.label_test_path)

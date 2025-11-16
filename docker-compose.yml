@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # Main BioBERT application
+  biobert:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: biobert:latest
+    container_name: biobert-app
+    volumes:
+      # Mount source code for development
+      - .:/app
+      # Persistent volumes for data
+      - biobert-data:/data
+      - biobert-models:/models
+      - biobert-output:/output
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    networks:
+      - biobert-network
+    # Uncomment for GPU support (requires nvidia-docker)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Development environment with dev dependencies
+  biobert-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: biobert:dev
+    container_name: biobert-dev
+    volumes:
+      - .:/app
+      - biobert-data:/data
+      - biobert-models:/models
+      - biobert-output:/output
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TF_CPP_MIN_LOG_LEVEL=2
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    networks:
+      - biobert-network
+
+  # Jupyter notebook for interactive development
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: biobert:dev
+    container_name: biobert-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - biobert-data:/data
+      - biobert-models:/models
+      - biobert-output:/output
+    environment:
+      - PYTHONUNBUFFERED=1
+      - JUPYTER_ENABLE_LAB=yes
+    command: >
+      jupyter lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''
+    networks:
+      - biobert-network
+
+volumes:
+  biobert-data:
+    driver: local
+  biobert-models:
+    driver: local
+  biobert-output:
+    driver: local
+
+networks:
+  biobert-network:
+    driver: bridge

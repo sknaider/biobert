@@ -1,10 +1,21 @@
-tensorflow-gpu==1.15.2   # GPU version of TensorFlow >= 1.11.0. (should be under 2.0.0)
+# BioBERT Production Dependencies
+# Updated for TensorFlow 2.x compatibility and modern Python versions
 
+# TensorFlow 2.13 LTS (Long Term Support)
+# Use 'tensorflow[and-cuda]' for GPU support on compatible systems
+tensorflow>=2.13.0,<2.14.0
 
+# Machine Learning
+scikit-learn>=1.3.0,<1.4.0
 
-# To evaluate RE answers :
-sklearn
-pandas==0.23
+# Data Processing
+pandas>=2.0.0,<2.2.0
+numpy>=1.24.0,<1.27.0
 
-# To evaluate BioASQ answers, your system should be able to execute java codes.
-# Please refer https://github.com/BioASQ/Evaluation-Measures for details.
+# Note: To evaluate BioASQ answers, your system should be able to execute Java code.
+# Please refer to https://github.com/BioASQ/Evaluation-Measures for details.
+
+# For GPU support, install:
+# pip install tensorflow[and-cuda]
+# Or use the older GPU-specific package:
+# tensorflow-gpu>=2.13.0,<2.14.0

@@ -1,0 +1,186 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biobert"
+version = "1.2.0"
+description = "BioBERT: a pre-trained biomedical language representation model for biomedical text mining"
+readme = "README.md"
+requires-python = ">=3.8,<3.12"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "DMIS Lab", email = "dmis.korea@gmail.com"}
+]
+keywords = ["biobert", "bert", "nlp", "biomedical", "text-mining", "tensorflow"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+dependencies = [
+    "tensorflow>=2.13.0,<2.14.0",
+    "scikit-learn>=1.3.0,<1.4.0",
+    "pandas>=2.0.0,<2.2.0",
+    "numpy>=1.24.0,<1.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-timeout>=2.1.0",
+
+    # Type checking
+    "mypy>=1.5.0",
+    "types-six",
+
+    # Linting and formatting
+    "black>=23.7.0",
+    "flake8>=6.1.0",
+    "flake8-docstrings>=1.7.0",
+    "isort>=5.12.0",
+    "pylint>=2.17.0",
+
+    # Security
+    "bandit>=1.7.5",
+    "safety>=2.3.5",
+    "pip-audit>=2.6.0",
+
+    # Pre-commit
+    "pre-commit>=3.3.0",
+]
+
+gpu = [
+    "tensorflow[and-cuda]>=2.13.0,<2.14.0",
+]
+
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "sphinx-autodoc-typehints>=1.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/dmis-lab/biobert"
+Documentation = "https://github.com/dmis-lab/biobert/blob/master/README.md"
+Repository = "https://github.com/dmis-lab/biobert"
+Issues = "https://github.com/dmis-lab/biobert/issues"
+
+[tool.setuptools]
+packages = ["biobert", "biobert.biocodes"]
+
+[tool.setuptools.package-dir]
+"biobert" = "."
+"biobert.biocodes" = "biocodes"
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = [".", "tests"]
+python_files = ["*_test.py", "test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=.",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*_test.py",
+    "*/tests/*",
+    "setup.py",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "test"]
+skips = ["B101", "B601"]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "R0913",  # too-many-arguments
+    "R0914",  # too-many-locals
+]
+
+[tool.pylint.format]
+max-line-length = 100

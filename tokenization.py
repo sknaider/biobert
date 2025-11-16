@@ -21,11 +21,12 @@ from __future__ import print_function
 import collections
 import re
 import unicodedata
+from typing import Dict, List, Optional, Union
 import six
 import tensorflow as tf
 
 
-def validate_case_matches_checkpoint(do_lower_case, init_checkpoint):
+def validate_case_matches_checkpoint(do_lower_case: bool, init_checkpoint: Optional[str]) -> None:
   """Checks whether the casing config is consistent with the checkpoint name."""
 
   # The casing has to be passed in by the user and there is no explicit check
@@ -75,7 +76,7 @@ def validate_case_matches_checkpoint(do_lower_case, init_checkpoint):
                                           model_name, case_name, opposite_flag))
 
 
-def convert_to_unicode(text):
+def convert_to_unicode(text: Union[str, bytes]) -> str:
   """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
   if six.PY3:
     if isinstance(text, str):
@@ -95,7 +96,7 @@ def convert_to_unicode(text):
     raise ValueError("Not running on Python2 or Python 3?")
 
 
-def printable_text(text):
+def printable_text(text: Union[str, bytes]) -> str:
   """Returns text encoded in a way suitable for print or `tf.logging`."""
 
   # These functions want `str` for both Python2 and Python3, but in one case
@@ -118,7 +119,7 @@ def printable_text(text):
     raise ValueError("Not running on Python2 or Python 3?")
 
 
-def load_vocab(vocab_file):
+def load_vocab(vocab_file: str) -> Dict[str, int]:
   """Loads a vocabulary file into a dictionary."""
   vocab = collections.OrderedDict()
   index = 0
@@ -133,7 +134,7 @@ def load_vocab(vocab_file):
   return vocab
 
 
-def convert_by_vocab(vocab, items):
+def convert_by_vocab(vocab: Dict[Union[str, int], Union[int, str]], items: List[Union[str, int]]) -> List[Union[int, str]]:
   """Converts a sequence of [tokens|ids] using the vocab."""
   output = []
   for item in items:
@@ -141,11 +142,11 @@ def convert_by_vocab(vocab, items):
   return output
 
 
-def convert_tokens_to_ids(vocab, tokens):
+def convert_tokens_to_ids(vocab: Dict[str, int], tokens: List[str]) -> List[int]:
   return convert_by_vocab(vocab, tokens)
 
 
-def convert_ids_to_tokens(inv_vocab, ids):
+def convert_ids_to_tokens(inv_vocab: Dict[int, str], ids: List[int]) -> List[str]:
   return convert_by_vocab(inv_vocab, ids)
 
 
