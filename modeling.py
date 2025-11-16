@@ -23,6 +23,7 @@ import copy
 import json
 import math
 import re
+from typing import Any, Callable, Dict, List, Optional, Union
 import six
 import tensorflow as tf
 
@@ -31,17 +32,17 @@ class BertConfig(object):
   """Configuration for `BertModel`."""
 
   def __init__(self,
-               vocab_size,
-               hidden_size=768,
-               num_hidden_layers=12,
-               num_attention_heads=12,
-               intermediate_size=3072,
-               hidden_act="gelu",
-               hidden_dropout_prob=0.1,
-               attention_probs_dropout_prob=0.1,
-               max_position_embeddings=512,
-               type_vocab_size=16,
-               initializer_range=0.02):
+               vocab_size: Optional[int],
+               hidden_size: int = 768,
+               num_hidden_layers: int = 12,
+               num_attention_heads: int = 12,
+               intermediate_size: int = 3072,
+               hidden_act: str = "gelu",
+               hidden_dropout_prob: float = 0.1,
+               attention_probs_dropout_prob: float = 0.1,
+               max_position_embeddings: int = 512,
+               type_vocab_size: int = 16,
+               initializer_range: float = 0.02) -> None:
     """Constructs BertConfig.
 
     Args:
@@ -79,7 +80,7 @@ class BertConfig(object):
     self.initializer_range = initializer_range
 
   @classmethod
-  def from_dict(cls, json_object):
+  def from_dict(cls, json_object: Dict[str, Any]) -> 'BertConfig':
     """Constructs a `BertConfig` from a Python dictionary of parameters."""
     config = BertConfig(vocab_size=None)
     for (key, value) in six.iteritems(json_object):
@@ -87,18 +88,18 @@ class BertConfig(object):
     return config
 
   @classmethod
-  def from_json_file(cls, json_file):
+  def from_json_file(cls, json_file: str) -> 'BertConfig':
     """Constructs a `BertConfig` from a json file of parameters."""
     with tf.gfile.GFile(json_file, "r") as reader:
       text = reader.read()
     return cls.from_dict(json.loads(text))
 
-  def to_dict(self):
+  def to_dict(self) -> Dict[str, Any]:
     """Serializes this instance to a Python dictionary."""
     output = copy.deepcopy(self.__dict__)
     return output
 
-  def to_json_string(self):
+  def to_json_string(self) -> str:
     """Serializes this instance to a JSON string."""
     return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
@@ -342,7 +343,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
   return (assignment_map, initialized_variable_names)
 
 
-def dropout(input_tensor, dropout_prob):
+def dropout(input_tensor: tf.Tensor, dropout_prob: Optional[float]) -> tf.Tensor:
   """Perform dropout.
 
   Args:
@@ -360,20 +361,24 @@ def dropout(input_tensor, dropout_prob):
   return output
 
 
-def layer_norm(input_tensor, name=None):
+def layer_norm(input_tensor: tf.Tensor, name: Optional[str] = None) -> tf.Tensor:
   """Run layer normalization on the last dimension of the tensor."""
   return tf.contrib.layers.layer_norm(
       inputs=input_tensor, begin_norm_axis=-1, begin_params_axis=-1, scope=name)
 
 
-def layer_norm_and_dropout(input_tensor, dropout_prob, name=None):
+def layer_norm_and_dropout(
+    input_tensor: tf.Tensor,
+    dropout_prob: Optional[float],
+    name: Optional[str] = None
+) -> tf.Tensor:
   """Runs layer normalization followed by dropout."""
   output_tensor = layer_norm(input_tensor, name)
   output_tensor = dropout(output_tensor, dropout_prob)
   return output_tensor
 
 
-def create_initializer(initializer_range=0.02):
+def create_initializer(initializer_range: float = 0.02) -> Any:
   """Creates a `truncated_normal_initializer` with the given range."""
   return tf.truncated_normal_initializer(stddev=initializer_range)
 
@@ -894,7 +899,11 @@ def transformer_model(input_tensor,
     return final_output
 
 
-def get_shape_list(tensor, expected_rank=None, name=None):
+def get_shape_list(
+    tensor: tf.Tensor,
+    expected_rank: Optional[Union[int, List[int]]] = None,
+    name: Optional[str] = None
+) -> List[Union[int, tf.Tensor]]:
   """Returns a list of the shape of tensor, preferring static dimensions.
 
   Args:
@@ -931,7 +940,7 @@ def get_shape_list(tensor, expected_rank=None, name=None):
   return shape
 
 
-def reshape_to_matrix(input_tensor):
+def reshape_to_matrix(input_tensor: tf.Tensor) -> tf.Tensor:
   """Reshapes a >= rank 2 tensor to a rank 2 tensor (i.e., a matrix)."""
   ndims = input_tensor.shape.ndims
   if ndims < 2:
@@ -945,7 +954,10 @@ def reshape_to_matrix(input_tensor):
   return output_tensor
 
 
-def reshape_from_matrix(output_tensor, orig_shape_list):
+def reshape_from_matrix(
+    output_tensor: tf.Tensor,
+    orig_shape_list: List[Union[int, tf.Tensor]]
+) -> tf.Tensor:
   """Reshapes a rank 2 tensor back to its original rank >= 2 tensor."""
   if len(orig_shape_list) == 2:
     return output_tensor

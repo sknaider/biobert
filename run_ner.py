@@ -18,6 +18,8 @@ import tensorflow as tf
 from tensorflow.python.ops import math_ops
 import tf_metrics
 import pickle
+import logging_utils
+
 flags = tf.flags
 
 FLAGS = flags.FLAGS
@@ -463,13 +465,17 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
 
 
 def main(_):
+    # Initialize both TensorFlow logging and structured logging
     tf.logging.set_verbosity(tf.logging.INFO)
+    logger = logging_utils.get_logger(__name__)
+
     processors = {
         "ner": NerProcessor
     }
     #if not FLAGS.do_train and not FLAGS.do_eval:
     #    raise ValueError("At least one of `do_train` or `do_eval` must be True.")
 
+    logger.info("Loading BERT configuration", config_file=FLAGS.bert_config_file)
     bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
 
     if FLAGS.max_seq_length > bert_config.max_position_embeddings:
@@ -515,6 +521,17 @@ def main(_):
         num_train_steps = int(
             len(train_examples) / FLAGS.train_batch_size * FLAGS.num_train_epochs)
         num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
+
+        # Log training configuration
+        logging_utils.log_training_params(logger, {
+            'num_examples': len(train_examples),
+            'batch_size': FLAGS.train_batch_size,
+            'num_epochs': FLAGS.num_train_epochs,
+            'num_steps': num_train_steps,
+            'warmup_steps': num_warmup_steps,
+            'learning_rate': FLAGS.learning_rate,
+            'max_seq_length': FLAGS.max_seq_length
+        })
 
     model_fn = model_fn_builder(
         bert_config=bert_config,
